@@ -108,7 +108,16 @@ class ConfigToolDependency(ExternalDependency):
                 if not is_found:
                     tool = None
             if best_match[1]:
-                if version_compare(out, '> {}'.format(best_match[1])):
+                # Always override when a tool with a matching version is found
+                # when previously version was mismatched. Otherwise only
+                # override like-for-like to avoid going from version matching
+                # older tool to a version mismatched newer tool
+                prev_version_match = best_match[0] is not None
+                curr_version_match = tool is not None
+                if ((not prev_version_match and curr_version_match) or (
+                        prev_version_match == curr_version_match and
+                        version_compare(out, '> {}'.format(best_match[1])))
+                    ):
                     best_match = (tool, out)
             else:
                 best_match = (tool, out)
